@@ -1,57 +1,60 @@
-const elements = {
-  name: document.getElementById("name"),
-  login: document.getElementById("login"),
-  bio: document.getElementById("bio"),
-  publicGistsCount: document.getElementById("public-gists-count"),
-  followingCount: document.getElementById("following-count"),
-  followersCount: document.getElementById("followers-count"),
-  linkedinLink: document.getElementById("linkedin-link"),
-  githubLink: document.getElementById("github-link"),
-  followButton: document.getElementById("follow-button"),
-  forkButton: document.getElementById("fork-button"),
-  githubAge: document.getElementById("github-age"),
-  userImage: document.getElementById("user-image"),
+const buscarGatinhos = (e) => {
+    e.preventDefault();
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'https://api.thecatapi.com/v1/images/search?limit=10');
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                const cats = JSON.parse(xhr.responseText);
+                cats.forEach(cat => {
+                    const imgContainer = document.createElement('div');
+
+                    const img = document.createElement('img');
+                    img.src = cat.url;
+
+                    const catId = document.createElement('span');
+                    catId.textContent = `Cat ID: ${cat.id}`;
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(catId);
+
+                    document.querySelector("#gatinhos").appendChild(imgContainer);
+                });
+            } else {
+                alert('Erro na requisição');
+            }
+        }
+    };
+    xhr.send();
 };
 
-const gitUser = async () => {
-  try {
-    const githubUser = 'joseolinda';
-    const response = await fetch(`https://api.github.com/users/${githubUser}`);
-    const userData = await response.json();
+const btnMostrar = document.querySelector("#mostrar-gatinhos");
+btnMostrar.addEventListener("click", buscarGatinhos);
 
-    console.log('Resposta da API:', userData);
+const getMarcas = () => {
+    const tarefas = fetch('https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/data.json');
 
-    elements.name.textContent = userData.name;
-    elements.login.textContent = userData.login;
-    elements.bio.textContent = userData.bio;
-    elements.publicGistsCount.textContent = userData.public_gists;
-    elements.followingCount.textContent = userData.following;
-    elements.followersCount.textContent = userData.followers;
-    elements.linkedinLink.href = userData.blog;
-    elements.githubLink.href = userData.html_url;
+    tarefas
+        .then(resposta => resposta.json())
+        .then(marcas => {
+            const ul = document.createElement('ul');
+            marcas.forEach(marca => {
+                const li = document.createElement('li');
 
-    // Adicione o URL da foto do usuário
-    elements.userImage.src = userData.avatar_url;
+                const logo = document.createElement('img');
+                logo.src = marca.image?.optimized;
+                li.appendChild(logo);
 
-    // Calcule quanto tempo a pessoa está usando o GitHub
-    const createdAt = new Date(userData.created_at);
-    const now = new Date();
-    const years = now.getFullYear() - createdAt.getFullYear();
-    console.log(`O usuário está usando o GitHub há ${years} anos.`);
-    elements.githubAge.textContent = `O usuário está usando o GitHub há ${years} anos.`;
+                const nomeMarca = document.createElement('span');
+                nomeMarca.textContent = marca.name; 
+                li.appendChild(nomeMarca);
 
-    elements.followButton.addEventListener("click", () => {
-      window.location.href = 'https://www.instagram.com/' + githubUser;
-    });
-
-    elements.forkButton.addEventListener("click", () => {
-      window.location.href = 'https://github.com/' + githubUser + '/example';
-    });
-
-  } catch (error) {
-    console.error('Erro ao obter informações do usuário:', error);
-  }
+                ul.appendChild(li);
+            });
+            document.body.appendChild(ul);
+        })
+        .catch(erro => console.log(erro));
 };
 
-// Chame a função gitUser quando as informações do perfil estiverem prontas
-gitUser();
+const btnMarcas = document.querySelector("#marcas");
+btnMarcas.addEventListener("click", getMarcas);
